@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+""" analytics.py
+Functions that handle most of the logic of the program:
+- Read matches.json
+- Run analytics on matches.json
+"""
 import pandas as pd
 import re
 import json
@@ -48,11 +54,16 @@ def activity_by_date(events):
 
 def analyze_double_likes(events):
     like_events = events[events["type"] == "like"]
-    multi_like_event_count = len(like_events.groupby('interaction_id').filter(lambda x: len(x) > 1))
+    multi_like_event_count = len(
+        like_events.groupby('interaction_id').filter(lambda x: len(x) > 1)
+    )
     single_like_event_count = len(like_events) - multi_like_event_count
 
     single_vs_double_likes = pd.DataFrame(
-        [['Single Like', single_like_event_count], ['Multiple Likes', multi_like_event_count]],
+        [
+            ['Single Like', single_like_event_count],
+            ['Multiple Likes', multi_like_event_count]
+        ],
         columns=["Like Frequency", "Count"])
 
     return single_vs_double_likes
@@ -67,9 +78,12 @@ def total_counts(events):
     chat_event_count = len(chat_events.interaction_id.unique())
 
     totals = pd.DataFrame(
-        [['Distinct Interactions', distinct_interaction_count], ['Outgoing Likes', like_event_count],
-         ['Matches', match_event_count],
-         ['Chats', chat_event_count]],
+        [
+            ['Distinct Interactions', distinct_interaction_count],
+            ['Outgoing Likes', like_event_count],
+            ['Matches', match_event_count],
+            ['Chats', chat_event_count]
+        ],
         columns=["action_type", "count"])
     return totals
 
@@ -85,12 +99,19 @@ def like_comment_ratios(events):
     likes_wo_comment = len(events) - len(likes_w_comments)
 
     likes_w_wo_comments = pd.DataFrame(
-        [['Likes with Comments', len(likes_w_comments)], ['Likes without Comments', likes_wo_comment]],
-        columns=["Likes With/ Without Comments", "Count"])
+        [
+            ['Likes with Comments', len(likes_w_comments)],
+            ['Likes without Comments', likes_wo_comment]
+        ],
+        columns=["Likes With/ Without Comments", "Count"]
+    )
     return likes_w_wo_comments
 
 
 def phone_number_shares(events):
+    """
+    Function that gets the number of times
+    """
     chats_w_messages = events.where(events["type"] == "chats")
     chats_w_messages = chats_w_messages[chats_w_messages['body'].notna()]
     total_messages_w_chats = len(chats_w_messages)
@@ -99,15 +120,22 @@ def phone_number_shares(events):
 
     phone_number_shared = []
     for message in message_bodies:
-        # finds common phone number formats in the message: XXX-XXX-XXXX, XXX.XXX.XXXX, (XXX) XXX-XXXX
-        message_containing_number = re.findall(r"\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}", message)
+        # finds common phone number formats in the message:
+        # XXX-XXX-XXXX, XXX.XXX.XXXX, (XXX) XXX-XXXX
+        message_containing_number = re.findall(
+            r"\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}", message
+        )
 
         if len(message_containing_number) >= 1:
             phone_number_shared.append(message_containing_number)
 
-    phone_number_share_ratios = pd.DataFrame([['Gave Phone Number', len(phone_number_shared)],
-                                              ['Did Not Give Phone Number', total_messages_w_chats]],
-                                             columns=["Message Outcomes", "Count"])
+    phone_number_share_ratios = pd.DataFrame(
+        [
+            ['Gave Phone Number', len(phone_number_shared)],
+            ['Did Not Give Phone Number', total_messages_w_chats]
+        ],
+        columns=["Message Outcomes", "Count"]
+    )
     return phone_number_share_ratios
 
 
@@ -155,9 +183,15 @@ def __validate_upload_file_type(file_path):
 
 def __validate_match_file_upload(file_path):
     if 'match' not in file_path:
-        raise ValueError("Invalid file name. Please upload a file with 'match' in the file name.")
+        raise ValueError(
+            "Invalid file name. Please upload a file with 'match' in the file "
+            "name."
+        )
 
 
 def __validate_user_file_upload(file_path):
     if 'user' not in file_path:
-        raise ValueError("Invalid file name. Please upload a file with 'user' in the file name.")
+        raise ValueError(
+            "Invalid file name. Please upload a file with 'user' in the file "
+            "name."
+        )
